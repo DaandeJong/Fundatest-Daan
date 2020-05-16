@@ -25,7 +25,7 @@ namespace Fundatest.Controllers
                 {
                     MakelaarsMetTuin = _apiService.GetTop10("/amsterdam/tuin/"),
                     MakelaarsZonderTuin = _apiService.GetTop10("/amsterdam/"),
-                    Message = "Succes"
+                    Message = string.Empty
                 };
             }
             catch (Exception ex)
