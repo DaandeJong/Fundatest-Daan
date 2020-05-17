@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Fundatest
 {
@@ -26,10 +27,12 @@ namespace Fundatest
             services.AddControllersWithViews();
 
             services.AddScoped<IApiService, FundaService>();
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -51,6 +54,7 @@ namespace Fundatest
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+                    
         }
     }
 }

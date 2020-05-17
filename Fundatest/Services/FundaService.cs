@@ -1,4 +1,6 @@
 ﻿using Fundatest.Model;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,26 +12,43 @@ namespace Fundatest.Services
 {
     public class FundaService : IApiService
     {
-        public string _baseUrl = "http://partnerapi.funda.nl/feeds/Aanbod.svc/json/";
-        public string _key = "ac1b0b1572524640a0ecc54de453ea9f";
+        private const double cacheDuration = 10;
+
+        private IMemoryCache _cache;
+        private readonly IConfiguration _configuration;
+
+        public FundaService(IMemoryCache memoryCache, IConfiguration configuration)
+        {
+            _cache = memoryCache;
+            _configuration = configuration;
+        }
 
         public List<MakelaarCount> GetTop10(string searchString)
-        {
-            var url = _baseUrl + _key + "/?type=koop&zo=" + searchString + "&page=1&pagesize=10000000";                   
-            var root = CallApi(url);
-            var objects = root["Objects"];
+        {        
+            if (!_cache.TryGetValue(searchString, out List<MakelaarCount> result))
+            {
+                var url = _configuration["BaseUrl"] + _configuration["ApiKey"] + "/?type=koop&zo=" + searchString + "&page=1&pagesize=10000000";
+                var root = CallApi(url);
+                var objects = root["Objects"];
 
-            var pageCount = Convert.ToInt32(root["Paging"]["AantalPaginas"]);
-            var currentPage = Convert.ToInt32(root["Paging"]["HuidigePagina"]);
+                var pageCount = Convert.ToInt32(root["Paging"]["AantalPaginas"]);
+                var currentPage = Convert.ToInt32(root["Paging"]["HuidigePagina"]);
 
-            if (pageCount > 1)
-                throw new Exception("Let op: het totaal aantal objecten past niet op 1 pagina");
+                if (pageCount > 1)
+                    throw new Exception("Let op: het totaal aantal objecten past niet op 1 pagina");
 
-            return objects.GroupBy(o => o["MakelaarNaam"])
-                           .Select(x => new MakelaarCount { MakelaarNaam = x.Key.ToString(), Count = x.Count() })
-                           .OrderByDescending(x => x.Count)
-                           .Take(10)
-                           .ToList();
+                result = objects.GroupBy(o => o["MakelaarNaam"])
+                               .Select(x => new MakelaarCount { MakelaarNaam = x.Key.ToString(), Count = x.Count() })
+                               .OrderByDescending(x => x.Count)
+                               .Take(10)
+                               .ToList();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(cacheDuration));
+
+                _cache.Set(searchString, result, cacheEntryOptions);
+            }
+
+            return result;                     
         }
 
         private JObject CallApi(string url)

@@ -1,0 +1,53 @@
+﻿@model HomeViewModel
+@{
+    ViewData["Title"] = "Top 10 Makelaars";
+}
+
+<div class="text-left">
+
+    @if (string.IsNullOrEmpty(Model.Message))
+    {
+        <p>
+            Top 10 Makelaars met meeste objecten in Amsterdam zonder tuin
+
+            <table>
+                <tr>
+                    <th>Makelaar</th>
+                    <th>Aantal objecten</th>
+                </tr>
+                @foreach (var makelaar in Model.MakelaarsZonderTuin)
+                {
+                    <tr>
+                        <td>@makelaar.MakelaarNaam</td>
+                        <td>@makelaar.Count</td>
+                    </tr>
+                }
+            </table>
+        </p>
+        <br />
+        <p>
+            Top 10 Makelaars met meeste objecten in Amsterdam <b>MET</b> tuin
+
+            <table>
+                <tr>
+                    <th>Makelaar</th>
+                    <th>Aantal objecten</th>
+                </tr>
+                @foreach (var makelaar in Model.MakelaarsMetTuin)
+                {
+                    <tr>
+                        <td>@makelaar.MakelaarNaam</td>
+                        <td>@makelaar.Count</td>
+                    </tr>
+                }
+            </table>
+        </p>
+    }
+    else
+    {
+        <p>
+            @Model.Message
+        </p>
+    }
+
+</div>
