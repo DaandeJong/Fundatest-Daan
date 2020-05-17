@@ -30,8 +30,8 @@ namespace Fundatest.Controllers
             {
                 model = new MakelaarInfoViewModel
                 {
-                    MakelaarsMetTuin = _apiService.GetTop10("/amsterdam/tuin/"),
-                    MakelaarsZonderTuin = _apiService.GetTop10("/amsterdam/"),
+                    MakelaarsMetTuin = _apiService.GetMakelaarTop10("/amsterdam/tuin/"),
+                    MakelaarsZonderTuin = _apiService.GetMakelaarTop10("/amsterdam/"),
                     Message = string.Empty
                 };
             }

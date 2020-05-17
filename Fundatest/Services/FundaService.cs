@@ -13,7 +13,8 @@ namespace Fundatest.Services
 {
     public class FundaService : IApiService
     {
-        private const double cacheDuration = 10;
+        private const double _cacheDuration = 10;
+        private const string _koopOfHuur = "koop";
 
         private IMemoryCache _cache;
         private readonly IConfiguration _configuration;
@@ -24,48 +25,63 @@ namespace Fundatest.Services
             _configuration = configuration;
         }
 
-        public List<MakelaarCount> GetTop10(string searchString)
+        public List<MakelaarCount> GetMakelaarTop10(string searchString)
         {
-            if (!_cache.TryGetValue(searchString, out List<MakelaarCount> result))
+            var jsonResult = GetSearchResult(_koopOfHuur, searchString);
+            return GetMakelaarTop10FromJson(jsonResult);
+        }
+
+        /// <summary>
+        /// Deze methode kan (automatisch) getest worden met een json tekstbestand
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns>List<MakelaarCount></returns>
+        private List<MakelaarCount> GetMakelaarTop10FromJson(string json)
+        {          
+            return GetObjectsFromJson(json)
+                           .GroupBy(o => o["MakelaarNaam"])
+                           .Select(x => new MakelaarCount
+                           {
+                               MakelaarNaam = x.Key.ToString(),
+                               Count = x.Count()
+                           })
+                           .OrderByDescending(x => x.Count)
+                           .Take(10)
+                           .ToList();
+        }
+
+        private JToken GetObjectsFromJson(string json)
+        {
+            var root = (JObject)JsonConvert.DeserializeObject(json);
+            var objects = root["Objects"];
+
+            if (Convert.ToInt32(root["Paging"]["AantalPaginas"]) > 1)
+                throw new Exception("Let op: het totaal aantal objecten past niet op 1 pagina");
+
+            return objects;
+        }
+
+        private string GetSearchResult(string type, string searchString)
+        {
+            if (!_cache.TryGetValue(type + searchString, out string result))
             {
-                var url = _configuration["BaseUrl"] + _configuration["ApiKey"] + "/?type=koop&zo=" + searchString + "&page=1&pagesize=10000000";
-                var root = CallApi(url);
-                var objects = root["Objects"];
+                var url = $"{_configuration["BaseUrl"]}{ _configuration["ApiKey"]}/?type={type}&zo={searchString}&page=1&pagesize=10000000";
+                result = CallApi(url);
 
-                var pageCount = Convert.ToInt32(root["Paging"]["AantalPaginas"]);
-                var currentPage = Convert.ToInt32(root["Paging"]["HuidigePagina"]);
-
-                if (pageCount > 1)
-                    throw new Exception("Let op: het totaal aantal objecten past niet op 1 pagina");
-
-                result = objects.GroupBy(o => o["MakelaarNaam"])
-                               .Select(x => new MakelaarCount { MakelaarNaam = x.Key.ToString(), Count = x.Count() })
-                               .OrderByDescending(x => x.Count)
-                               .Take(10)
-                               .ToList();
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(cacheDuration));
-
-                _cache.Set(searchString, result, cacheEntryOptions);
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(_cacheDuration));
+                _cache.Set(type + searchString, result, cacheEntryOptions);
             }
-
             return result;
         }
 
-        private JObject CallApi(string url)
+        private string CallApi(string url)
         {
             using var httpClient = new HttpClient();
             using var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
             if (response.IsSuccessStatusCode)
-            {
-                var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                var root = (JObject)JsonConvert.DeserializeObject(result);
-                return root;
-            }
-            else
-            {
-                throw new Exception((int)response.StatusCode + "-" + response.ToString());
-            }
+                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            else          
+                throw new Exception((int)response.StatusCode + "-" + response.ToString());            
         }
 
     }

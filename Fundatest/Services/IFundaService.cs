@@ -5,6 +5,6 @@ namespace Fundatest.Services
 {
     public interface IApiService
     {
-        public List<MakelaarCount> GetTop10(string searchString);
+        public List<MakelaarCount> GetMakelaarTop10(string searchString);
     }
 }
