@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Fundatest.Models
 {
-    public class HomeViewModel
+    public class MakelaarInfoViewModel
     {
         public List<MakelaarCount> MakelaarsZonderTuin { get; set; }
         public List<MakelaarCount> MakelaarsMetTuin { get; set; }

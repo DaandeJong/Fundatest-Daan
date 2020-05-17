@@ -25,10 +25,10 @@ namespace Fundatest.Controllers
                
         public IActionResult MakelaarInfo()
         {
-            HomeViewModel model = null;
+            MakelaarInfoViewModel model = null;
             try
             {
-                model = new HomeViewModel
+                model = new MakelaarInfoViewModel
                 {
                     MakelaarsMetTuin = _apiService.GetTop10("/amsterdam/tuin/"),
                     MakelaarsZonderTuin = _apiService.GetTop10("/amsterdam/"),
@@ -37,7 +37,7 @@ namespace Fundatest.Controllers
             }
             catch (Exception ex)
             {
-                model = new HomeViewModel {
+                model = new MakelaarInfoViewModel {
                     MakelaarsMetTuin = new List<Model.MakelaarCount>(),
                     MakelaarsZonderTuin = new List<Model.MakelaarCount>(),
                     Message = "Er is helaas een fout opgetreden. See log for more details."

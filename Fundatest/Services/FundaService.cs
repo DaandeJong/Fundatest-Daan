@@ -1,4 +1,5 @@
 ﻿using Fundatest.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -24,7 +25,7 @@ namespace Fundatest.Services
         }
 
         public List<MakelaarCount> GetTop10(string searchString)
-        {        
+        {
             if (!_cache.TryGetValue(searchString, out List<MakelaarCount> result))
             {
                 var url = _configuration["BaseUrl"] + _configuration["ApiKey"] + "/?type=koop&zo=" + searchString + "&page=1&pagesize=10000000";
@@ -48,22 +49,22 @@ namespace Fundatest.Services
                 _cache.Set(searchString, result, cacheEntryOptions);
             }
 
-            return result;                     
+            return result;
         }
 
         private JObject CallApi(string url)
         {
-            using (var httpClient = new HttpClient())
+            using var httpClient = new HttpClient();
+            using var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+            if (response.IsSuccessStatusCode)
             {
-                using (var response = httpClient.GetAsync(url).GetAwaiter().GetResult())
-                {
-                    using (var content = response.Content)
-                    {
-                        var result = content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        var root = (JObject)JsonConvert.DeserializeObject(result);
-                        return root;
-                    }
-                }
+                var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var root = (JObject)JsonConvert.DeserializeObject(result);
+                return root;
+            }
+            else
+            {
+                throw new Exception((int)response.StatusCode + "-" + response.ToString());
             }
         }
 

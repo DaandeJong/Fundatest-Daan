@@ -1,0 +1,19 @@
+﻿@model MakelaarViewModel
+
+<p>
+    @Model.Titel
+
+    <table>
+        <tr>
+            <th>Makelaar</th>
+            <th>Aantal objecten</th>
+        </tr>
+        @foreach (var makelaar in Model.Makelaars)
+        {
+            <tr>
+                <td>@makelaar.MakelaarNaam</td>
+                <td>@makelaar.Count</td>
+            </tr>
+        }
+    </table>
+</p>
