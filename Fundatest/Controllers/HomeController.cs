@@ -23,6 +23,7 @@ namespace Fundatest.Controllers
             return View();
         }
                
+        // Ik heb gekozen voor MVC met .net Core omdat ik hier ervaring mee heb en het een handig manier is om de gegevens te presenteren.
         public IActionResult MakelaarInfo()
         {
             MakelaarInfoViewModel model = null;
@@ -37,9 +38,7 @@ namespace Fundatest.Controllers
             }
             catch (Exception ex)
             {
-                model = new MakelaarInfoViewModel {
-                    MakelaarsMetTuin = new List<Model.MakelaarCount>(),
-                    MakelaarsZonderTuin = new List<Model.MakelaarCount>(),
+                model = new MakelaarInfoViewModel {                  
                     Message = "Er is helaas een fout opgetreden. See log for more details."
                 };
 

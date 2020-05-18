@@ -49,7 +49,7 @@ namespace Fundatest.Services
                            .Take(10)
                            .ToList();
         }
-
+                
         private JToken GetObjectsFromJson(string json)
         {
             var root = (JObject)JsonConvert.DeserializeObject(json);
@@ -61,6 +61,7 @@ namespace Fundatest.Services
             return objects;
         }
 
+        // Elke search wordt gecached zodat geen onnodige aanroepen van de api en snelheidswinst
         private string GetSearchResult(string type, string searchString)
         {
             if (!_cache.TryGetValue(type + searchString, out string result))
@@ -74,6 +75,14 @@ namespace Fundatest.Services
             return result;
         }
 
+        // Ik heb gekozen voor de REST /json aanpak ipv WCF omdat
+        // - de wcf endpoints niet werkten
+        // - ik het leuker vond json te gebruiken (dan een voorgegenereerde wcf proxy)
+        // - het voor deze specifieke opdracht alles lichtgewicht houdt
+        // Nadelen oa:
+        // - meer werk om uit te breiden oa door geen gegenereerde classes 
+        // - niet strongly typed
+        // - bij update van de api moet je meer handmatig aanpassen
         private string CallApi(string url)
         {
             using var httpClient = new HttpClient();
