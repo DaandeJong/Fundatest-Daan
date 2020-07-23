@@ -13,6 +13,7 @@ namespace Fundatest.Services
 {
     public class FundaService : IApiService
     {
+
         private const double _cacheDuration = 10;
         private const string _koopOfHuur = "koop";
 
